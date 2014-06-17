@@ -3,6 +3,8 @@
 #include <QString>
 #include <QFileInfo>
 #include <QDebug>
+#include <QTemporaryFile>
+#include <QDir>
 
 // DCMTK includes
 #include <dcmtk/dcmimgle/dcmimage.h>
@@ -15,13 +17,11 @@
 #include <dcmtk/dcmdata/dcdict.h>
 #include <dcmtk/dcmdata/dcdicent.h>
 #include <dcmtk/dcmimage/diregist.h>
-
-
 #include <dcmtk/dcmdata/dcdeftag.h>
 
 // local
 #include "dicomprocessor.h"
-
+#include "qimg2dcm.h"
 
 DicomProcessor::DicomProcessor()
 {
@@ -81,7 +81,6 @@ void DicomProcessor::load(QString filePath)
 {
     const QFileInfo fileInfo(filePath);
 
-
     this->dicomFile = new DcmFileFormat();
     DcmObject *dset = this->dicomFile;
     OFCondition cond = this->dicomFile->loadFile(fileInfo.absoluteFilePath().toLocal8Bit());
@@ -91,6 +90,18 @@ void DicomProcessor::load(QString filePath)
     }
 
     this->dicomImage = new DicomImage(dset, (E_TransferSyntax)0);
+}
+
+bool DicomProcessor::save(QString filePath, QImage newImage)
+{
+    Qimg2dcm q2dcm;
+    DcmDataset dsCopy = *(this->dicomFile->getDataset());
+    E_TransferSyntax writeXfer;
+
+    q2dcm.insertImage(dsCopy, writeXfer, newImage);
+    qDebug("saving dcm");
+    dsCopy.saveFile(filePath.toLocal8Bit(), writeXfer);
+    return true; //failure is not an option
 }
 
 //------------------------------------------------------------------------------
@@ -157,3 +168,7 @@ QImage DicomProcessor::frame(int frame) const
   return image.convertToFormat(QImage::Format_ARGB32);
 }
 
+int DicomProcessor::getRepresentativeFrame()
+{
+    return this->dicomImage->getRepresentativeFrame();
+}

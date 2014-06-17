@@ -80,15 +80,17 @@ void DicomLabeler::templateRendered(QImage *templateImage)
 
     switch(mode) {
     case DicomLabelerMode_default:
+        {
+            QImage merged = overlayImage(this->dcmProcessor.frame(this->dcmProcessor.getRepresentativeFrame()),
+                                         this->labelImage, this->label_x, this->label_y);
+            this->dcmProcessor.save(this->outputFile, merged);
+        }
         break;
     case DicomLabelerMode_image_only:
-        qDebug() << this->dcmProcessor.frameCount();
-        for(unsigned int i=0; i<this->dcmProcessor.frameCount(); i++) {
-            QImage merged = overlayImage(this->dcmProcessor.frame(i), this->labelImage, this->label_x, this->label_y);
-            const QFileInfo fileInfo(this->outputFile);
-            QString newImagePath = fileInfo.absolutePath() + "/" + fileInfo.baseName() + QString::number(i) + "." + fileInfo.completeSuffix();
-            this->saveImage(merged,
-                            newImagePath);
+        {
+            QImage merged = overlayImage(this->dcmProcessor.frame(this->dcmProcessor.getRepresentativeFrame()),
+                                         this->labelImage, this->label_x, this->label_y);
+            this->saveImage(merged, this->outputFile);
         }
         break;
     case DicomLabelerMode_template_only:
@@ -100,8 +102,7 @@ void DicomLabeler::templateRendered(QImage *templateImage)
 }
 
 void DicomLabeler::saveImage(QImage& image, QString filepath) {
-    const QFileInfo fileInfo(filepath);
-    image.save(fileInfo.absoluteFilePath());
+    image.save(filepath);
 }
 
 QImage DicomLabeler::overlayImage(const QImage& baseImage, const QImage& overlayImage, int x, int y)

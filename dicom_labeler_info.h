@@ -1,0 +1,7 @@
+#ifndef DICOM_LABELER_INFO_H
+#define DICOM_LABELER_INFO_H
+
+#define APP_NAME "DICOM Labeler"
+#define APP_VERSION "1.0"
+
+#endif // DICOM_LABELER_INFO_H

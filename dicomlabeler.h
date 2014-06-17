@@ -31,7 +31,6 @@ public:
 private slots:
     void templateRendered(QImage *templateImage);
 
-
 private:
     void saveImage(QImage& image, QString filepath);
     QImage overlayImage(const QImage& baseImage, const QImage& overlayImage, int x, int y);

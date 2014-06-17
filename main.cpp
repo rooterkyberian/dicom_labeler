@@ -22,9 +22,7 @@
 
 #include "templaterenderer.h"
 #include "dicomlabeler.h"
-
-#define APP_NAME "DICOM Labeler"
-#define APP_VERSION "1.0"
+#include "dicom_labeler_info.h"
 
 void showErrorHelpAndExit(QCommandLineParser &parser, QString message) {
     qDebug() << message;

@@ -16,12 +16,12 @@ public:
     ~DicomProcessor();
 
     QString getMetadata(QString id);
-    bool setImages(QList<QImage>);
     void load(QString filePath);
-    bool save(QString filePath);
+    bool save(QString filePath, QImage newImage);
 
     unsigned long frameCount() const;
     QImage frame(int frame) const;
+    int getRepresentativeFrame();
 
 private:
     DicomImage *dicomImage;

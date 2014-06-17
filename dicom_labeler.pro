@@ -24,12 +24,15 @@ contains(CONFIG, static): {
 SOURCES += main.cpp \
     dicomlabeler.cpp \
     dicomprocessor.cpp \
-    templaterenderer.cpp
+    templaterenderer.cpp \
+    qimg2dcm.cpp
 
 HEADERS += \
     dicomlabeler.h \
     dicomprocessor.h \
-    templaterenderer.h
+    templaterenderer.h \
+    dicom_labeler_info.h \
+    qimg2dcm.h
 
 
-LIBS += -ldcmjpls -lCharLS -ldcmjpeg -lijg8 -lijg12 -lijg16  -ldcmimage -ltiff -ldcmimgle -ldcmdata -loflog -lofstd -lz
+LIBS += -ldcmjpls -lCharLS -ldcmjpeg -lijg8 -lijg12 -lijg16 -llibi2d  -ldcmimage -ltiff -ldcmimgle -ldcmdata -loflog -lofstd -lz
