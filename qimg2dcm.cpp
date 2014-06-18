@@ -3,10 +3,7 @@
 // QT
 #include <QImage>
 #include <QString>
-#include <QFileInfo>
-#include <QDebug>
 #include <QTemporaryFile>
-#include <QDir>
 
 // DCMTK includes
 #include <dcmtk/dcmimgle/dcmimage.h>
@@ -20,7 +17,8 @@
 #include <dcmtk/dcmdata/dcdicent.h>
 #include <dcmtk/dcmimage/diregist.h>
 #include <dcmtk/dcmdata/libi2d/i2d.h>
-#include "dcmtk/dcmdata/libi2d/i2dbmps.h"
+#include <dcmtk/dcmdata/libi2d/i2dbmps.h>
+#include "dcmtk/dcmdata/libi2d/i2dplsc.h"
 #include <dcmtk/dcmdata/dcdeftag.h>
 
 Qimg2dcm::Qimg2dcm() : Image2Dcm()
@@ -42,6 +40,12 @@ void Qimg2dcm::insertImage(DcmDataset &outputDataset, E_TransferSyntax &writeXfe
     cond = generateUIDs(&outputDataset);
     // return cond if failed
     cond = readAndInsertPixelData(imageSource, &outputDataset, writeXfer);
+
+    I2DOutputPlug *outPlug = new I2DOutputPlugSC();
+
+    cond = outPlug->convert(outputDataset);
+
+    delete outPlug;
     delete imageSource;
 
     // return cond
