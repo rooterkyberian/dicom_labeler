@@ -48,6 +48,16 @@ void DicomLabeler::startProcessing(QString templateFile, QString inputFile, QStr
 void DicomLabeler::setTemplate(const QString templateFile) {
     tmplRenderer.getPage()->mainFrame()->load(QUrl::fromUserInput( templateFile ));
 }
+int DicomLabeler::getSelectedFrame()
+{
+    return (selectedFrame>=0&&selectedFrame<(int)this->dcmProcessor.frameCount())?selectedFrame:this->dcmProcessor.getRepresentativeFrame();
+}
+
+void DicomLabeler::setSelectedFrame(int value)
+{
+    selectedFrame = value;
+}
+
 
 long DicomLabeler::getLabel_y() const
 {
@@ -93,7 +103,7 @@ void DicomLabeler::templateRendered(QImage *templateImage)
         break;
     case DicomLabelerMode_image_only:
         {
-            QImage merged = overlayImage(this->dcmProcessor.frame(this->dcmProcessor.getRepresentativeFrame()),
+            QImage merged = overlayImage(this->dcmProcessor.frame(this->getSelectedFrame()),
                                          this->labelImage, this->label_x, this->label_y);
             this->saveImage(merged, this->outputFile);
         }

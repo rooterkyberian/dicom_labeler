@@ -28,6 +28,9 @@ public:
     long getLabel_y() const;
     void setLabel_y(long value);
 
+    int getSelectedFrame();
+    void setSelectedFrame(int value);
+
 private slots:
     void templateRendered(QImage *templateImage);
 
@@ -44,6 +47,8 @@ private:
     TemplateRenderer tmplRenderer;
     long int label_x, label_y;
     QImage labelImage;
+
+    int selectedFrame;
 };
 
 #endif // DICOMLABELER_H

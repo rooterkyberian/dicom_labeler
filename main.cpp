@@ -77,6 +77,12 @@ void parseCommandLine(QApplication &app, DicomLabeler &dicomLabeler)
     labelScaleOption.setDefaultValue("1.0");
     parser.addOption(labelScaleOption);
 
+    QCommandLineOption frameIdxOption(QStringList() << "f" << "frame-index",
+                                        QCoreApplication::translate("main", "Frame <index> to be rendered as image. -1 for representative frame."),
+                                        QCoreApplication::translate("main", "index"));
+    frameIdxOption.setDefaultValue("-1");
+    parser.addOption(frameIdxOption);
+
     parser.addPositionalArgument("template", QApplication::translate("main", "Template file."));
     parser.addPositionalArgument("output", QApplication::translate("main", "Output file."));
     parser.addPositionalArgument("[dicom_input]", QApplication::translate("main", "Input DICOM file."));
@@ -110,6 +116,7 @@ void parseCommandLine(QApplication &app, DicomLabeler &dicomLabeler)
             // generate template
             // merge
             // write dicom
+            dicomLabeler.setSelectedFrame(parser.value(frameIdxOption).toInt());
             dicomLabeler.startProcessing(args.at(0), args.at(2), args.at(1), DicomLabelerMode_image_only);
         } else {
             // read dicom
