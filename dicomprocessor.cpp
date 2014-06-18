@@ -1,3 +1,4 @@
+#include <stdlib.h>     /* realloc */
 // QT
 #include <QImage>
 #include <QString>
@@ -92,14 +93,35 @@ void DicomProcessor::load(QString filePath)
     this->dicomImage = new DicomImage(dset, (E_TransferSyntax)0);
 }
 
-bool DicomProcessor::save(QString filePath, QImage newImage)
+bool DicomProcessor::save(QString filePath, QList<QImage> newImages)
 {
+    if(newImages.length()<1)
+        return false;
+
     Qimg2dcm q2dcm;
     DcmDataset dsCopy = *(this->dicomFile->getDataset());
-    E_TransferSyntax writeXfer;
+    E_TransferSyntax writeXfer = EXS_LittleEndianImplicit;
+    unsigned long length;
+    char* pixData = NULL;
+    const Uint8* pixDataC;
 
-    q2dcm.insertImage(dsCopy, writeXfer, newImage);
-    qDebug("saving dcm");
+    q2dcm.insertImage(dsCopy, writeXfer, newImages.at(0));
+    dsCopy.findAndGetUint8Array(DCM_PixelData, pixDataC, &length);
+    pixData= (char*) pixDataC;
+
+    for (int i = 1; i < newImages.size(); ++i) {
+        DcmDataset dsSingleFrameCopy = *(this->dicomFile->getDataset());
+        q2dcm.insertImage(dsSingleFrameCopy, writeXfer, newImages.at(i));
+        unsigned long f_length;
+
+        dsSingleFrameCopy.findAndGetUint8Array(DCM_PixelData, pixDataC, &f_length);
+        pixData = (char*) realloc(pixData, (length+f_length)*sizeof(Uint8));
+        memcpy(pixData+(length*sizeof(Uint8)), pixDataC, (f_length*sizeof(Uint8)));
+        length+=f_length;
+    }
+
+    dsCopy.putAndInsertUint8Array(DCM_PixelData, OFreinterpret_cast(Uint8*, pixData), length);
+
     dsCopy.saveFile(filePath.toLocal8Bit(), writeXfer);
     return true; //failure is not an option
 }

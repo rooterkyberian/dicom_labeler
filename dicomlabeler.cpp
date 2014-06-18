@@ -81,9 +81,14 @@ void DicomLabeler::templateRendered(QImage *templateImage)
     switch(mode) {
     case DicomLabelerMode_default:
         {
-            QImage merged = overlayImage(this->dcmProcessor.frame(this->dcmProcessor.getRepresentativeFrame()),
-                                         this->labelImage, this->label_x, this->label_y);
-            this->dcmProcessor.save(this->outputFile, merged);
+            QList<QImage> overlayedImages;
+            for(unsigned int i=0; i<this->dcmProcessor.frameCount(); i++)
+            {
+                QImage merged = overlayImage(this->dcmProcessor.frame(i),
+                                             this->labelImage, this->label_x, this->label_y);
+                overlayedImages.append(merged);
+            }
+            this->dcmProcessor.save(this->outputFile, overlayedImages);
         }
         break;
     case DicomLabelerMode_image_only:
