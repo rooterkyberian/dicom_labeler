@@ -17,7 +17,7 @@ public:
 
     QString getMetadata(QString id);
     void load(QString filePath);
-    bool save(QString filePath, QList<QImage> newImages);
+    bool save(QString filePath, QImage label, int x, int y);
 
     unsigned long frameCount() const;
     QImage frame(int frame) const;

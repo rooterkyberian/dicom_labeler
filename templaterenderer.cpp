@@ -129,12 +129,16 @@ TemplateRenderer::JavaScriptWindowObjectCleared() {
 void
 TemplateRenderer::finishRender() {
     saveSnapshot();
-    //QApplication::exit();
 }
 
 void
 TemplateRenderer::handleSslErrors(QNetworkReply* reply, QList<QSslError> /*errors*/) {
     reply->ignoreSslErrors();
+}
+
+void TemplateRenderer::Timeout()
+{
+    saveSnapshot();
 }
 
 void
@@ -186,7 +190,6 @@ QString TemplateRenderer::processHtmlCode(QString htmlCode)
 
     while ((rxLTags.indexIn(htmlCode, 0)) != -1) {
         QString name = rxLTags.cap(1);
-        qDebug() << name;
         htmlCode.replace(rxLTags.cap(0), getDicomValue(name));
     }
 

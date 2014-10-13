@@ -25,7 +25,7 @@
 #include "dicom_labeler_info.h"
 
 void showErrorHelpAndExit(QCommandLineParser &parser, QString message) {
-    qDebug() << message;
+    qCritical() << message;
     parser.showHelp(1);
 }
 
@@ -96,6 +96,9 @@ void parseCommandLine(QApplication &app, DicomLabeler &dicomLabeler)
         showErrorHelpAndExit(parser, QString("Template & Image only modes exclude each other"));
     }
 
+    dicomLabeler.setLabel_x(parser.value(labelPositionXOption).toInt());
+    dicomLabeler.setLabel_y(parser.value(labelPositionYOption).toInt());
+
     TemplatePage *page = dicomLabeler.getTemplateRenderer()->getPage();
 
     if(parser.value(labelWidthOption).toInt()>0 && parser.value(labelHeightOption).toInt()>0)
@@ -105,11 +108,39 @@ void parseCommandLine(QApplication &app, DicomLabeler &dicomLabeler)
         page->mainFrame()->setZoomFactor(parser.value(labelScaleOption).toFloat());
     }
 
-    switch(args.count()) {
-    case 3:
-        dicomLabeler.setLabel_x(parser.value(labelPositionXOption).toInt());
-        dicomLabeler.setLabel_y(parser.value(labelPositionYOption).toInt());
 
+    if(args.count()>1) {
+        QFile tmplFile(args.at(0));
+        if (tmplFile.exists()) {
+            dicomLabeler.setTemplateFile(tmplFile.fileName());
+        } else showErrorHelpAndExit(
+                    parser,
+                    QString("template file (%1) doesn't exists!").arg(
+                        tmplFile.fileName()
+                        )
+                    );
+        dicomLabeler.setOutputFile(args.at(1));
+    }
+    if(args.count()>2) {
+        QFile inFile(args.at(2));
+        if (inFile.exists()) {
+            dicomLabeler.setInputFile(inFile.fileName());
+        } else showErrorHelpAndExit(
+                    parser,
+                    QString("input DICOM file (%1) doesn't exists!").arg(
+                        inFile.fileName()
+                        )
+                    );
+    }
+
+
+    if(args.count() >= 2 && args.count() <= 3 && parser.isSet(ouputTemplateOnly))
+    {
+        // generate template
+        // write to file
+        dicomLabeler.startProcessing(DicomLabelerMode_template_only);
+    } else if(args.count() == 3)
+    {
         if(parser.isSet(ouputImageOnly))
         {
             // read dicom
@@ -117,39 +148,20 @@ void parseCommandLine(QApplication &app, DicomLabeler &dicomLabeler)
             // merge
             // write dicom
             dicomLabeler.setSelectedFrame(parser.value(frameIdxOption).toInt());
-            dicomLabeler.startProcessing(args.at(0), args.at(2), args.at(1), DicomLabelerMode_image_only);
+            dicomLabeler.startProcessing(DicomLabelerMode_image_only);
         } else {
             // read dicom
             // generate template
             // merge
             // write image
-            dicomLabeler.startProcessing(args.at(0), args.at(2), args.at(1), DicomLabelerMode_default);
+            dicomLabeler.startProcessing(DicomLabelerMode_default);
         }
-        break;
-    case 2:
-        if(parser.isSet(ouputTemplateOnly))
-        {
-            // generate template
-            // write to file
-            dicomLabeler.startProcessing(args.at(0), "", args.at(1), DicomLabelerMode_template_only);
-        } else {
-            showErrorHelpAndExit(
-                        parser,
-                        QString("wrong number of positional arguments for this mode (%1)").arg(
-                            QString::number(args.count())
-                            )
-                        );
-        }
-        break;
-    default:
-        showErrorHelpAndExit(
+    } else showErrorHelpAndExit(
                     parser,
                     QString("wrong number of positional arguments (%1)").arg(
                         QString::number(args.count())
                         )
                     );
-        break;
-    }
 }
 
 int main(int argc, char *argv[])

@@ -18,7 +18,7 @@ class DicomLabeler : public QObject {
 public:
     DicomLabeler();
     ~DicomLabeler();
-    void startProcessing(QString templateFile, QString inputFile, QString outputFile, DicomLabelerMode mode);
+    void startProcessing(DicomLabelerMode mode);
 
     TemplateRenderer *getTemplateRenderer();
 
@@ -31,12 +31,20 @@ public:
     int getSelectedFrame();
     void setSelectedFrame(int value);
 
+    QString getTemplateFile() const;
+    void setTemplateFile(const QString &value);
+
+    QString getOutputFile() const;
+    void setOutputFile(const QString &value);
+
+    QString getInputFile() const;
+    void setInputFile(const QString &value);
+
 private slots:
     void templateRendered(QImage *templateImage);
 
 private:
     void saveImage(QImage& image, QString filepath);
-    QImage overlayImage(const QImage& baseImage, const QImage& overlayImage, int x, int y);
     void setTemplate(const QString templateFile);
 
     QString templateFile, outputFile, inputFile;
