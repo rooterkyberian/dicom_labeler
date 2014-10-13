@@ -7,6 +7,7 @@
 #include <QTemporaryFile>
 #include <QDir>
 #include <QColor>
+#include <QtEndian>
 
 // DCMTK includes
 #include <dcmtk/dcmimgle/dcmimage.h>
@@ -100,37 +101,49 @@ void DicomProcessor::load(QString filePath)
  * FIXME pixel_rep
  */
 template<typename T>
-void transPixeltoMono(double max_value, QColor pixel_color, Uint16 pixel_rep, Uint8* ptr)
+void transPixeltoMono(double max_value, QColor pixel_color, Uint16 pixel_rep, Uint8* ptr, E_TransferSyntax xfer)
 {
     int mono = (qGray(pixel_color.rgb()) * max_value) / 256;
-    *((T*)ptr) = (T) mono;
+    switch(xfer) {
+    case EXS_LittleEndianImplicit:
+    case EXS_LittleEndianExplicit:
+        *((T*)ptr) = qToLittleEndian((T) mono);
+        break;
+    case EXS_BigEndianImplicit:
+    case EXS_BigEndianExplicit:
+        *((T*)ptr) = qToBigEndian((T) mono);
+        break;
+    default:
+        *((T*)ptr) = (T) mono;
+        break;
+    }
 }
 
 void putPixel(double max_value, Uint16 bitsAllocated, Uint16 pixel_rep,
-                              QColor pixel_color, Uint8* ptr) {
+                              QColor pixel_color, Uint8* ptr, E_TransferSyntax xfer) {
 
     if(pixel_rep==0) {
         switch(bitsAllocated/8) {
             case 1:
-            transPixeltoMono<Uint8>(max_value, pixel_color, pixel_rep, ptr);
+            transPixeltoMono<quint8>(max_value, pixel_color, pixel_rep, ptr, xfer);
                 break;
             case 2:
-            transPixeltoMono<Uint16>(max_value, pixel_color, pixel_rep, ptr);
+            transPixeltoMono<quint16>(max_value, pixel_color, pixel_rep, ptr, xfer);
                 break;
             case 4:
-            transPixeltoMono<Uint32>(max_value, pixel_color, pixel_rep, ptr);
+            transPixeltoMono<quint32>(max_value, pixel_color, pixel_rep, ptr, xfer);
                 break;
         }
     } else {
         switch(bitsAllocated/8) {
             case 1:
-            transPixeltoMono<Sint8>(max_value, pixel_color, pixel_rep, ptr);
+            transPixeltoMono<qint8>(max_value, pixel_color, pixel_rep, ptr, xfer);
                 break;
             case 2:
-            transPixeltoMono<Sint16>(max_value, pixel_color, pixel_rep, ptr);
+            transPixeltoMono<qint16>(max_value, pixel_color, pixel_rep, ptr, xfer);
                 break;
             case 4:
-            transPixeltoMono<Sint32>(max_value, pixel_color, pixel_rep, ptr);
+            transPixeltoMono<qint32>(max_value, pixel_color, pixel_rep, ptr, xfer);
                 break;
         }
     }
@@ -191,7 +204,7 @@ bool DicomProcessor::save(QString filePath, QImage label, int x, int y)
                             pixel_color = QColor::fromRgb(pixel_color.rgb()^0xFFFFFF);
                         }
 
-                        putPixel( color_max, bitsAllocated, pixel_rep, pixel_color, pixel_ptr);
+                        putPixel( color_max, bitsAllocated, pixel_rep, pixel_color, pixel_ptr, writeXfer);
                     } else {
                         std::cout << "error!" << std::endl;
                     }
