@@ -87,14 +87,13 @@ void DicomProcessor::load(QString filePath)
     const QFileInfo fileInfo(filePath);
 
     this->dicomFile = new DcmFileFormat();
-    DcmObject *dset = this->dicomFile;
     OFCondition cond = this->dicomFile->loadFile(fileInfo.absoluteFilePath().toLocal8Bit());
     if (cond.bad())
     {
         throw QString("couldn't load DICOM input file");
     }
 
-    this->dicomImage = new DicomImage(dset, (E_TransferSyntax)0);
+    this->dicomImage = new DicomImage(dicomFile->getDataset(), dicomFile->getDataset()->getOriginalXfer());
 }
 
 /**
@@ -150,18 +149,9 @@ void putPixel(double max_value, Uint16 bitsAllocated, Uint16 pixel_rep,
 
 }
 
-/**
-* @brief DicomProcessor::save
-* @param filePath
-* @param label
-* @param x
-* @param y
-* @return
-*/
-bool DicomProcessor::save(QString filePath, QImage label, int x, int y)
-{
-    DcmDataset dsCopy = *(this->dicomFile->getDataset());
-    E_TransferSyntax writeXfer = dsCopy.getOriginalXfer();
+void DicomProcessor::overlay(QImage label, int x, int y) {
+    DcmDataset &ds = *(this->dicomFile->getDataset());
+    E_TransferSyntax writeXfer = ds.getOriginalXfer();
     unsigned long length;
     const Uint8* pixDataC;
     Uint8* pixData;
@@ -173,17 +163,17 @@ bool DicomProcessor::save(QString filePath, QImage label, int x, int y)
 
     Sint32 numberOfFrames = 1;
 
-    dsCopy.findAndGetSint32(DCM_NumberOfFrames, numberOfFrames);
+    ds.findAndGetSint32(DCM_NumberOfFrames, numberOfFrames);
     if (numberOfFrames < 1) numberOfFrames = 1;
 
     Uint16 bitsStored, bitsAllocated, samples_per_pixe1=1, pixel_rep;
-    dsCopy.findAndGetUint16(DCM_BitsAllocated, bitsAllocated);
-    dsCopy.findAndGetUint16(DCM_BitsStored, bitsStored);
-    dsCopy.findAndGetUint16(DCM_PixelRepresentation, pixel_rep);
-    if(dsCopy.findAndGetUint16(DCM_SamplesPerPixel, samples_per_pixe1) != EC_Normal)
+    ds.findAndGetUint16(DCM_BitsAllocated, bitsAllocated);
+    ds.findAndGetUint16(DCM_BitsStored, bitsStored);
+    ds.findAndGetUint16(DCM_PixelRepresentation, pixel_rep);
+    if(ds.findAndGetUint16(DCM_SamplesPerPixel, samples_per_pixe1) != EC_Normal)
         samples_per_pixe1 = 1;
 
-    dsCopy.findAndGetUint8Array(DCM_PixelData, pixDataC, &length);
+    ds.findAndGetUint8Array(DCM_PixelData, pixDataC, &length);
     const unsigned short int pixel_size = (bitsAllocated / 8) * samples_per_pixe1;
 
     double color_min, color_max;
@@ -213,7 +203,18 @@ bool DicomProcessor::save(QString filePath, QImage label, int x, int y)
         }
     }
 
-    dsCopy.saveFile(filePath.toLocal8Bit(), writeXfer);
+    this->dicomImage = new DicomImage(dicomFile->getDataset(), dicomFile->getDataset()->getOriginalXfer());
+}
+
+/**
+* @brief DicomProcessor::save
+* @param filePath
+* @return
+*/
+bool DicomProcessor::save(QString filePath)
+{
+    E_TransferSyntax writeXfer = this->dicomFile->getDataset()->getOriginalXfer();
+    this->dicomFile->saveFile(filePath.toLocal8Bit(), writeXfer);
     return true; //failure is not an option // FIXME
 }
 

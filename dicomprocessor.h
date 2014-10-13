@@ -8,7 +8,8 @@
 
 class DicomImage;
 class DcmFileFormat;
-class DcmTagKey; //dcmtk
+class DcmTagKey;
+class DcmDataset;
 class DicomProcessor
 {
 public:
@@ -17,11 +18,13 @@ public:
 
     QString getMetadata(QString id);
     void load(QString filePath);
-    bool save(QString filePath, QImage label, int x, int y);
+    bool save(QString filePath);
 
     unsigned long frameCount() const;
     QImage frame(int frame) const;
     int getRepresentativeFrame();
+
+    void overlay(QImage label, int x, int y);
 
 private:
     DicomImage *dicomImage;

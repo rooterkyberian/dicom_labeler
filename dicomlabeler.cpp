@@ -109,12 +109,15 @@ void DicomLabeler::templateRendered(QImage *templateImage)
     switch(mode) {
     case DicomLabelerMode_default:
         {
-            this->dcmProcessor.save(this->outputFile, this->labelImage, this->label_x, this->label_y);
+            this->dcmProcessor.overlay(this->labelImage, this->label_x, this->label_y);
+            this->dcmProcessor.save(this->outputFile);
         }
         break;
     case DicomLabelerMode_image_only:
         {
-            // TODO
+            this->dcmProcessor.overlay(this->labelImage, this->label_x, this->label_y);
+            QImage overlayedFrame = this->dcmProcessor.frame(this->getSelectedFrame());
+            this->saveImage(overlayedFrame, this->outputFile);
         }
         break;
     case DicomLabelerMode_template_only:
