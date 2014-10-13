@@ -8,8 +8,8 @@ Label Templates are made as HTML files and processed by QtWebKit. DICOM tags not
 Current state
 ----
 * template rendering works (QtWebkit; code based on http://cutycapt.sourceforge.net/ )
-* metadata and image extraction (dcmtk) - support for different image formats probably needs more work
-* still no support for writing back to the DICOM file (or copy of it)
+* metadata extraction (dcmtk)
+* DICOM export (dcmtk) by in-place editing. Only non-compressed Transfer syntax and monochrome interpolation. RGB may or may not work.
 
 Example files on which this tool has been tested can be found here: http://www.insight-journal.org/midas/collection/view/194
 
