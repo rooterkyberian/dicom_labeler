@@ -185,7 +185,13 @@ bool DicomProcessor::save(QString filePath, QImage label, int x, int y)
                     Uint8* pixel_ptr = pixData + pixel_size * cur_x + pixel_size * cur_y * x_max + sample_i * (bitsAllocated / 8);
 
                     if(pixel_ptr < (pixDataC + length)) {
-                        putPixel( color_max, bitsAllocated, pixel_rep, label.pixel(cur_x-x, cur_y-y), pixel_ptr);
+                        QColor pixel_color = label.pixel(cur_x-x, cur_y-y);
+
+                        if(this->dicomImage->getPhotometricInterpretation() == EPI_Monochrome1) {
+                            pixel_color = QColor::fromRgb(pixel_color.rgb()^0xFFFFFF);
+                        }
+
+                        putPixel( color_max, bitsAllocated, pixel_rep, pixel_color, pixel_ptr);
                     } else {
                         std::cout << "error!" << std::endl;
                     }
